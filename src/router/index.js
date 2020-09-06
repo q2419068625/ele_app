@@ -5,6 +5,8 @@ import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import Me from '../views/Me.vue'
 import Order from '../views/Order.vue'
+import Address from '../views/Address.vue'
+import City from '../views/City.vue'
 Vue.use(VueRouter)
 
   const routes = [
@@ -31,6 +33,16 @@ Vue.use(VueRouter)
         path:'/order',
         name:'order',
         component:Order
+      },
+      {
+        path:'/address',
+        name:'address',
+        component:Address
+      },
+      {
+        path:'/city',
+        name:'city',
+        component:City
       }
     ]
   },
