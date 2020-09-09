@@ -7,6 +7,7 @@ import Me from '../views/Me.vue'
 import Order from '../views/Order.vue'
 import Address from '../views/Address.vue'
 import City from '../views/City.vue'
+import Search from '../views/Search.vue'
 Vue.use(VueRouter)
 
   const routes = [
@@ -50,6 +51,11 @@ Vue.use(VueRouter)
     path: '/login',
     name: 'login',
     component: Login
+  },
+  {
+    path: '/search',
+    name: 'search',
+    component: Search
   },
 ]
 

@@ -1,6 +1,6 @@
 <template>
-  <div :class="{'open':isSort}" @click.self="hideView">
-      <!-- 导航 -->
+  <div :class="{ open: isSort || isScreen }" @click.self="hideView">
+    <!-- 导航 -->
     <div v-if="filterData" class="filter_wrap">
       <aside class="filter">
         <div
@@ -17,12 +17,40 @@
     </div>
     <!-- 排序 -->
     <section class="filter-extend" v-if="isSort">
-        <ul>
-            <li v-for="(item,index) in filterData.sortBy" :key="index" @click="selectSort(item,index)">
-                <span :class="{'selectName':currentSort == index}">{{item.name}}</span>
-                <i class="fa fa-check" v-show="currentSort == index"></i>
+      <ul>
+        <li
+          v-for="(item, index) in filterData.sortBy"
+          :key="index"
+          @click="selectSort(item, index)"
+        >
+          <span :class="{ selectName: currentSort == index }">{{
+            item.name
+          }}</span>
+          <i class="fa fa-check" v-show="currentSort == index"></i>
+        </li>
+      </ul>
+    </section>
+    <!-- 筛选 -->
+    <section class="filter-extend" v-if="isScreen">
+      <div class="filter-sort">
+        <div
+          v-for="(screen, index) in filterData.screenBy"
+          :key="index"
+          class="morefilter"
+        >
+          <p class="title">{{ screen.title }}</p>
+          <ul>
+            <li v-for="(item, i) in screen.data" :key="i" :class="{'selected':item.select}" @click="selectScreen(item,screen)">
+              <img v-if="item.icon" :src="item.icon" alt="" />
+              <span>{{ item.name }}</span>
             </li>
-        </ul>
+          </ul>
+        </div>
+      </div>
+      <div class="morefilter-btn">
+        <span @click="clearFilter" :class="{'edit':edit}" class="morefilter-clear">取消</span>
+        <span @click="filterOk" class="morefilter-ok">确定</span>
+      </div>
     </section>
   </div>
 </template>
@@ -33,8 +61,9 @@ export default {
   data() {
     return {
       currentFilter: 0,
-      isSort:false,
-      currentSort:0
+      isSort: false,
+      currentSort: 0,
+      isScreen: false,
     };
   },
   props: {
@@ -44,38 +73,105 @@ export default {
     filterSort(index) {
       this.currentFilter = index;
       switch (index) {
-          case 0:
-              this.isSort = true;
-              this.$emit("searchFixed",true)
-              break;
-            case 1:
-                 this.$emit('update',{condation:this.filterData.navTab[1].condition});
-                 this.hideView();
-                 break;
-            case 2:
-                 this.$emit('update',{condation:this.filterData.navTab[2].condition});
-                 this.hideView();
-                 break;
-          default:
-              this.hideView()
-              break;
+        case 0:
+          this.isSort = true;
+          this.$emit("searchFixed", true);
+          break;
+        case 1:
+          this.$emit("update", {
+            condition: this.filterData.navTab[1].condition,
+          });
+          this.hideView();
+          break;
+        case 2:
+          this.$emit("update", {
+            condition: this.filterData.navTab[2].condition,
+          });
+          this.hideView();
+          break;
+        case 3:
+          this.isScreen = true;
+          this.isSort = true;
+          this.$emit("searchFixed", true);
+          break;
+        default:
+          this.hideView();
+          break;
       }
     },
     //隐藏遮罩层
-    hideView(){
-        this.isSort = false;
-        this.$emit("searchFixed",false)
+    hideView() {
+      this.isSort = false;
+      this.isScreen = false;
+      this.$emit("searchFixed", false);
     },
     //选择排序
-    selectSort(item,index){
-        this.currentSort = index;
-        this.filterData.navTab[0].name = this.filterData.sortBy[index].name;
-        this.hideView();
+    selectSort(item, index) {
+      this.currentSort = index;
+      this.filterData.navTab[0].name = this.filterData.sortBy[index].name;
+      this.hideView();
 
-        //更新数据
-        this.$emit('update',{condation:item.code})
+      //更新数据
+      this.$emit("update", { condition: item.code });
+    },
+    //选择筛选条件
+    selectScreen(item,screen){
+        if(screen.id !== "MPI"){
+            //单选
+            screen.data.forEach(ele =>{
+                ele.select = false;
+            })
+        }
+            // console.log(item);
+            item.select = !item.select
+    },
+    //取消筛选条件
+    clearFilter(){
+        this.filterData.screenBy.forEach(screen=>{
+            screen.data.forEach(item=>{
+                item.select = false;
+            })
+        })
+    },
+    //确认筛选调教
+    filterOk(){
+        let screenData = {
+            MPI:'',
+            offer:'',
+            per:''
+        }
+        let mpiStr = '';
+        this.filterData.screenBy.forEach(screen=>{
+            screen.data.forEach((item,index)=>{
+                if(item.select){
+                    if(screen.id !=="MPI"){
+                        //单选
+                        screenData[screen.id] = item.code;
+                    }else{
+                        //多选
+                        mpiStr += item.code +',';
+                        screenData[screen.id] = mpiStr;
+                    }
+                }
+            })
+        })
+        this.$emit("update",{condition:screenData});
+        this.hideView();
     }
   },
+  computed:{
+      edit(){
+          let edit = false;
+          this.filterData.screenBy.forEach(screen=>{
+              screen.data.forEach(item=>{
+                  if(item.select){
+                      edit = true;
+                  }
+              })
+          })
+          return edit;
+      }
+  }
 };
 </script>
 
